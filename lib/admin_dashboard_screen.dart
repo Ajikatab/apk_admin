@@ -14,8 +14,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const CustomerScreen(),
-    const TweetScreen(),
+    CustomerScreen(),
+    TweetScreen(),
   ];
 
   final List<String> _titles = [

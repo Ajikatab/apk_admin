@@ -23,11 +23,8 @@ class CustomerDataList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      // Changed to QuerySnapshot to get all documents
-      stream: FirebaseFirestore.instance
-          .collection(
-              'users') // Make sure collection name matches your Firebase
-          .snapshots(),
+      // Mengubah stream untuk mengambil dari collection 'user'
+      stream: FirebaseFirestore.instance.collection('user').snapshots(),
       builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -45,14 +42,14 @@ class CustomerDataList extends StatelessWidget {
           itemCount: users.length,
           itemBuilder: (context, index) {
             final userData = users[index].data() as Map<String, dynamic>;
-            final userId = users[index].id; // Get document ID
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
               color: Colors.black87,
               child: ExpansionTile(
+                // Mengubah untuk menampilkan email
                 title: Text(
-                  userData['Identifier'] ?? 'No Email',
+                  userData['email'] ?? 'No Email',
                   style: const TextStyle(color: Colors.amber, fontSize: 16),
                 ),
                 collapsedIconColor: Colors.amber,
@@ -63,13 +60,11 @@ class CustomerDataList extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInfoRow('Created', userData['Created'] ?? 'N/A'),
+                        // Hanya menampilkan createdAt
+                        _buildInfoRow('Created At',
+                            userData['createdAt']?.toString() ?? 'N/A'),
                         const SizedBox(height: 8),
-                        _buildInfoRow(
-                            'Signed In', userData['Signed In'] ?? 'N/A'),
-                        const SizedBox(height: 8),
-                        _buildInfoRow(
-                            'User UID', userData['User UID'] ?? 'N/A'),
+                        _buildInfoRow('Email', userData['email'] ?? 'N/A'),
                       ],
                     ),
                   ),
