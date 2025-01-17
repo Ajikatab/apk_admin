@@ -42,7 +42,7 @@ class SplashScreen extends StatelessWidget {
             Icon(Icons.movie, size: 100, color: Colors.amber),
             const SizedBox(height: 16),
             Text(
-              'Silver Screen Saga',
+              'DailyVibe',
               style: TextStyle(
                 fontSize: 24,
                 color: Colors.amber,
