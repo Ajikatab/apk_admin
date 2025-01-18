@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -20,10 +20,21 @@ class GrafikScreen extends StatelessWidget {
             .orderBy('createdAt')
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No data available'));
+          }
+
+          // Proses data
           Map<String, int> usersByDay = {};
           for (var doc in snapshot.data!.docs) {
             final data = doc.data() as Map<String, dynamic>;
@@ -38,54 +49,59 @@ class GrafikScreen extends StatelessWidget {
           final List<UserData> chartData =
               usersByDay.entries.map((e) => UserData(e.key, e.value)).toList();
 
-          final series = [
-            charts.Series<UserData, String>(
-              id: 'Users',
-              domainFn: (UserData users, _) => users.date,
-              measureFn: (UserData users, _) => users.count,
-              data: chartData,
-              colorFn: (_, __) => charts.MaterialPalette.yellow.shadeDefault,
-            )
-          ];
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Users: ${snapshot.data!.docs.length}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: charts.BarChart(
-                    series,
-                    animate: true,
-                    domainAxis: const charts.OrdinalAxisSpec(
-                      renderSpec: charts.SmallTickRendererSpec(
-                        labelRotation: 45,
-                        labelStyle: charts.TextStyleSpec(
-                          fontSize: 10,
-                        ),
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Refresh data dengan memaksa rebuild StreamBuilder
+              // Anda bisa menggunakan GlobalKey untuk memicu rebuild
+              // atau memanggil ulang stream.
+              // Contoh sederhana:
+              await FirebaseFirestore.instance
+                  .collection('user')
+                  .orderBy('createdAt')
+                  .get();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Users: ${snapshot.data!.docs.length}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    primaryMeasureAxis: const charts.NumericAxisSpec(
-                      tickProviderSpec: charts.BasicNumericTickProviderSpec(
-                        desiredTickCount: 6,
-                      ),
-                      renderSpec: charts.GridlineRendererSpec(
-                        labelStyle: charts.TextStyleSpec(
-                          fontSize: 10,
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 400, // Atur tinggi grafik
+                      child: SfCartesianChart(
+                        primaryXAxis: CategoryAxis(
+                          labelRotation: 45,
+                          labelStyle: const TextStyle(fontSize: 10),
                         ),
+                        primaryYAxis: NumericAxis(
+                          title: AxisTitle(text: 'Number of Users'),
+                          labelStyle: const TextStyle(fontSize: 10),
+                        ),
+                        series: <ChartSeries>[
+                          ColumnSeries<UserData, String>(
+                            dataSource: chartData,
+                            xValueMapper: (UserData data, _) => data.date,
+                            yValueMapper: (UserData data, _) => data.count,
+                            color: Colors.amber,
+                            dataLabelSettings:
+                                const DataLabelSettings(isVisible: true),
+                          ),
+                        ],
+                        tooltipBehavior: TooltipBehavior(enable: true),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
