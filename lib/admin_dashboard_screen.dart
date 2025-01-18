@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'customer_screen.dart';
 import 'tweet_screen.dart';
-import 'login_screen.dart'; // Add this import for the login screen
+import 'login_screen.dart';
+import 'grafik_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -16,11 +17,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final List<Widget> _pages = [
     CustomerScreen(),
     TweetScreen(),
+    const GrafikScreen(),
   ];
 
   final List<String> _titles = [
     'Manage Customers',
     'Tweets',
+    'User Graph',
   ];
 
   @override
@@ -33,11 +36,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           style: const TextStyle(color: Colors.amber),
         ),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.amber),
+            onSelected: (value) {
+              if (value == 'graph') {
+                setState(() {
+                  _currentIndex = 2;
+                });
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: 'graph',
+                child: Text('View Graph'),
+              ),
+            ],
+          ),
           IconButton(
-            icon: const Icon(Icons.logout,
-                color: Colors.amber), // Changed to logout icon
+            icon: const Icon(Icons.logout, color: Colors.amber),
             onPressed: () {
-              // Navigate to login screen and remove all previous routes
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -66,6 +83,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble),
             label: 'Tweets',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Graph',
           ),
         ],
       ),
